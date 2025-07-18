@@ -23,14 +23,14 @@ local petESPBtn = makeButton("Pet ESP", 10)
 local randomizeBtn = makeButton("Randomize Egg: OFF", 60)
 local stopTrexBtn = makeButton("Stop when T-Rex", 110)
 
--- Core Logic
+-- Core Logic (Raptor most common, T-Rex rare)
 local pets = {
-	"T-Rex", "T-Rex", "T-Rex", "T-Rex", -- 40%
-	"Brontosaurus",                    -- 10%
-	"Pterodactyl",                     -- 10%
-	"Triceratops",                     -- 10%
-	"Stegosaurus",                     -- 10%
-	"Raptor"                           -- 10%
+	"Raptor", "Raptor", "Raptor", "Raptor", -- 40%
+	"Brontosaurus",                        -- 10%
+	"Pterodactyl",                         -- 10%
+	"Triceratops",                         -- 10%
+	"Stegosaurus",                         -- 10%
+	"T-Rex"                                -- 10%
 }
 
 local activeTags = {}
@@ -46,16 +46,16 @@ local function applyFakeESP()
 			gui.Adornee = part
 			gui.AlwaysOnTop = true
 
-			local label = Instance.new("TextLabel", gui)  
-			label.Size = UDim2.new(1, 0, 1, 0)  
-			label.BackgroundTransparency = 1  
-			label.TextColor3 = Color3.fromRGB(255,255,0)  
-			label.Text = pets[math.random(1, #pets)]  
-			label.Font = Enum.Font.SourceSansBold  
-			label.TextScaled = true  
+			local label = Instance.new("TextLabel", gui)
+			label.Size = UDim2.new(1, 0, 1, 0)
+			label.BackgroundTransparency = 1
+			label.TextColor3 = Color3.fromRGB(255,255,0)
+			label.Text = pets[math.random(1, #pets)]
+			label.Font = Enum.Font.SourceSansBold
+			label.TextScaled = true
 
-			activeTags[part] = {gui = gui, label = label}  
-		end  
+			activeTags[part] = {gui = gui, label = label}
+		end
 	end
 end
 
