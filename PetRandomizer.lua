@@ -1,80 +1,29 @@
--- GUI Elements (Plant Theme)
-local gui = Instance.new("ScreenGui", game.CoreGui)
-local frame = Instance.new("Frame", gui)
-frame.BackgroundColor3 = Color3.fromRGB(34, 139, 34) -- Forest green
-frame.Position = UDim2.new(0, 50, 0, 200)
-frame.Size = UDim2.new(0, 270, 0, 250)
-frame.Active = true
-frame.Draggable = true
+-- Create main UI local gui = Instance.new("ScreenGui") gui.Name = "EggVisualizerGUI" gui.ResetOnSpawn = false pcall(function() gui.Parent = game:GetService("CoreGui") end)
 
-local roundFrame = Instance.new("UICorner", frame)
-roundFrame.CornerRadius = UDim.new(0, 12)
+-- Main Frame local frame = Instance.new("Frame") frame.Size = UDim2.new(0, 300, 0, 260) frame.Position = UDim2.new(0, 50, 0, 100) frame.BackgroundColor3 = Color3.fromRGB(34, 139, 34) -- green plant theme frame.BorderSizePixel = 0 frame.Parent = gui
 
-local function makeButton(text, y)
-	local btn = Instance.new("TextButton", frame)
-	btn.Size = UDim2.new(0, 240, 0, 40)
-	btn.Position = UDim2.new(0, 15, 0, y)
-	btn.Text = text
-	btn.BackgroundColor3 = Color3.fromRGB(85, 170, 85) -- Light plant green
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.Font = Enum.Font.SourceSansBold
-	btn.TextSize = 18
+local corner = Instance.new("UICorner") corner.CornerRadius = UDim.new(0, 12) corner.Parent = frame
 
-	local corner = Instance.new("UICorner", btn)
-	corner.CornerRadius = UDim.new(0, 8)
+-- Title Label local title = Instance.new("TextLabel") title.Size = UDim2.new(1, 0, 0, 40) title.BackgroundColor3 = Color3.fromRGB(255, 255, 255) title.Text = "🌿 Egg Visualizer GUI" title.TextColor3 = Color3.fromRGB(128, 0, 128) -- purple title.Font = Enum.Font.GothamBold title.TextSize = 18 title.Parent = frame
 
-	return btn
+local titleCorner = Instance.new("UICorner") titleCorner.CornerRadius = UDim.new(0, 12) titleCorner.Parent = title
+
+-- Button generator local function createButton(text, positionY) local btn = Instance.new("TextButton") btn.Size = UDim2.new(0, 260, 0, 40) btn.Position = UDim2.new(0, 20, 0, positionY) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.TextColor3 = Color3.fromRGB(128, 0, 128) btn.Font = Enum.Font.Gotham btn.TextSize = 16 btn.Text = text btn.Parent = frame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 10)
+btnCorner.Parent = btn
+
+return btn
+
 end
 
-local petESPBtn = makeButton("🌿 Pet ESP", 10)
-local randomizeBtn = makeButton("🔄 Randomize Egg: OFF", 60)
-local stopTrexBtn = makeButton("⛔ Stop when T-Rex", 110)
+-- Buttons local petEspBtn = createButton("Pet ESP (Visual Only)", 60) local randomToggle = createButton("Randomize Egg: OFF", 110) local stopTrex = createButton("Stop when T-Rex", 160)
 
--- Core Logic
-local pets = {
-    "T-Rex",
-    "Brontosaurus",
-    "Pterodactyl",
-    "Triceratops",
-    "Stegosaurus",
-    "Raptor"
-}
-local activeTags = {}
-local running = false
-local stopAt = nil
+-- Toggle logic local isRandomizing = false randomToggle.MouseButton1Click:Connect(function() isRandomizing = not isRandomizing randomToggle.Text = "Randomize Egg: " .. (isRandomizing and "ON" or "OFF") end)
 
--- Function to apply fake ESP
-local function applyFakeESP()
-	for _, part in pairs(workspace:GetDescendants()) do
-		if part:IsA("Part") and part.Name:lower():find("egg") and not activeTags[part] then
-			local gui = Instance.new("BillboardGui", part)
-			gui.Size = UDim2.new(0, 100, 0, 50)
-			gui.Adornee = part
-			gui.AlwaysOnTop = true
-			gui.Name = "FakePetESP"
+-- Click logs petEspBtn.MouseButton1Click:Connect(function() print("[Visual] Pet ESP toggled") end)
 
-			local label = Instance.new("TextLabel", gui)
-			label.Size = UDim2.new(1, 0, 1, 0)
-			label.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White background
-			label.BorderSizePixel = 0
-			label.BackgroundTransparency = 0.2
-			label.TextColor3 = Color3.fromRGB(128, 0, 128) -- Purple text
-			label.Text = pets[math.random(1, #pets)]
-			label.Font = Enum.Font.SourceSansBold
-			label.TextScaled = true
-			label.Name = "PetNameLabel"
+stopTrex.MouseButton1Click:Connect(function() print("[Visual] Stop when T-Rex selected") end)
 
-			local corner = Instance.new("UICorner", label)
-			corner.CornerRadius = UDim.new(0, 8)
-
-			activeTags[part] = {gui = gui, label = label}
-		end
-	end
-end
-
--- Function to randomize
-task.spawn(function()
-	while true do
-		wait(1)
-		if running then
-			for _, tag
+print("[EggVisualizerGUI] Loaded visually")
