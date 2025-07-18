@@ -1,30 +1,92 @@
--- Create main UI local gui = Instance.new("ScreenGui") gui.Name = "EggVisualizerGUI" gui.ResetOnSpawn = false pcall(function() gui.Parent = game:GetService("CoreGui") end)
+-- GUI Elements
+local gui = Instance.new("ScreenGui", game.CoreGui)
+local frame = Instance.new("Frame", gui)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Position = UDim2.new(0, 50, 0, 200)
+frame.Size = UDim2.new(0, 250, 0, 220)
+frame.Active = true
+frame.Draggable = true
 
--- Main Frame local frame = Instance.new("Frame") frame.Size = UDim2.new(0, 320, 0, 360) frame.Position = UDim2.new(0, 50, 0, 100) frame.BackgroundColor3 = Color3.fromRGB(34, 139, 34) -- green plant theme frame.BorderSizePixel = 0 frame.Parent = gui
-
-local corner = Instance.new("UICorner") corner.CornerRadius = UDim.new(0, 12) corner.Parent = frame
-
--- Title Label local title = Instance.new("TextLabel") title.Size = UDim2.new(1, 0, 0, 40) title.BackgroundColor3 = Color3.fromRGB(255, 255, 255) title.Text = "🌿 Egg Visualizer GUI" title.TextColor3 = Color3.fromRGB(128, 0, 128) -- purple title.Font = Enum.Font.GothamBold title.TextSize = 18 title.Parent = frame
-
-local titleCorner = Instance.new("UICorner") titleCorner.CornerRadius = UDim.new(0, 12) titleCorner.Parent = title
-
--- Button generator local function createButton(text, positionY) local btn = Instance.new("TextButton") btn.Size = UDim2.new(0, 280, 0, 40) btn.Position = UDim2.new(0, 20, 0, positionY) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.TextColor3 = Color3.fromRGB(128, 0, 128) btn.Font = Enum.Font.Gotham btn.TextSize = 16 btn.Text = text btn.Parent = frame
-
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 10)
-btnCorner.Parent = btn
-
-return btn
-
+local function makeButton(text, y)
+	local btn = Instance.new("TextButton", frame)
+	btn.Size = UDim2.new(0, 230, 0, 40)
+	btn.Position = UDim2.new(0, 10, 0, y)
+	btn.Text = text
+	btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 18
+	return btn
 end
 
--- Buttons local petEspBtn = createButton("Pet ESP (Visual Only)", 60) local randomToggle = createButton("Randomize Egg: OFF", 110) local stopTrex = createButton("Stop when T-Rex", 160) local stopBron = createButton("Stop when Brontosaurus", 210) local stopPtera = createButton("Stop when Pterodactyl", 260) local stopTrice = createButton("Stop when Triceratops", 310) local stopStego = createButton("Stop when Stegosaurus", 360) local stopRaptor = createButton("Stop when Raptor", 410)
+local petESPBtn = makeButton("Pet ESP", 10)
+local randomizeBtn = makeButton("Randomize Egg: OFF", 60)
+local stopTrexBtn = makeButton("Stop when T-Rex", 110)
+local stopQueenBtn = makeButton("Stop when Queen Bee", 160)
+local stopMimicBtn = makeButton("Stop when Mimic Octopus", 210)
 
--- Toggle logic local isRandomizing = false randomToggle.MouseButton1Click:Connect(function() isRandomizing = not isRandomizing randomToggle.Text = "Randomize Egg: " .. (isRandomizing and "ON" or "OFF") end)
+-- Core Logic
+local pets = {"T-Rex", "Queen Bee", "Mimic Octopus"}
+local activeTags = {}
+local running = false
+local stopAt = nil
 
--- Click logs petEspBtn.MouseButton1Click:Connect(function() print("[Visual] Pet ESP toggled") end)
+-- Function to apply fake ESP
+local function applyFakeESP()
+	for _, part in pairs(workspace:GetDescendants()) do
+		if part:IsA("Part") and part.Name:lower():find("egg") and not activeTags[part] then
+			local gui = Instance.new("BillboardGui", part)
+			gui.Size = UDim2.new(0, 100, 0, 40)
+			gui.Adornee = part
+			gui.AlwaysOnTop = true
 
-stopTrex.MouseButton1Click:Connect(function() print("[Visual] Stop when T-Rex selected") end) stopBron.MouseButton1Click:Connect(function() print("[Visual] Stop when Brontosaurus selected") end) stopPtera.MouseButton1Click:Connect(function() print("[Visual] Stop when Pterodactyl selected") end) stopTrice.MouseButton1Click:Connect(function() print("[Visual] Stop when Triceratops selected") end) stopStego.MouseButton1Click:Connect(function() print("[Visual] Stop when Stegosaurus selected") end) stopRaptor.MouseButton1Click:Connect(function() print("[Visual] Stop when Raptor selected") end)
+			local label = Instance.new("TextLabel", gui)
+			label.Size = UDim2.new(1, 0, 1, 0)
+			label.BackgroundTransparency = 1
+			label.TextColor3 = Color3.fromRGB(255,255,0)
+			label.Text = pets[math.random(1, #pets)]
+			label.Font = Enum.Font.SourceSansBold
+			label.TextScaled = true
 
-print("[EggVisualizerGUI] Visual-only script loaded.")
+			activeTags[part] = {gui = gui, label = label}
+		end
+	end
+end
 
+-- Function to randomize
+task.spawn(function()
+	while true do
+		task.wait(1)
+		if running then
+			for _, tag in pairs(activeTags) do
+				local newPet = pets[math.random(1, #pets)]
+				tag.label.Text = newPet
+				if stopAt and newPet == stopAt then
+					running = false
+					randomizeBtn.Text = "Randomize Egg: OFF"
+					stopAt = nil
+				end
+			end
+		end
+	end
+end)
+
+-- Button Logic
+petESPBtn.MouseButton1Click:Connect(applyFakeESP)
+
+randomizeBtn.MouseButton1Click:Connect(function()
+	running = not running
+	randomizeBtn.Text = "Randomize Egg: " .. (running and "ON" or "OFF")
+end)
+
+stopTrexBtn.MouseButton1Click:Connect(function()
+	stopAt = "T-Rex"
+end)
+
+stopQueenBtn.MouseButton1Click:Connect(function()
+	stopAt = "Queen Bee"
+end)
+
+stopMimicBtn.MouseButton1Click:Connect(function()
+	stopAt = "Mimic Octopus"
+end)
