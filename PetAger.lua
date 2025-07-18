@@ -1,95 +1,92 @@
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local PetESP = Instance.new("TextButton")
-local Randomize = Instance.new("TextButton")
-local StopT_Rex = Instance.new("TextButton")
-local StopQueenBee = Instance.new("TextButton")
-local StopMimic = Instance.new("TextButton")
+-- GUI Elements
+local gui = Instance.new("ScreenGui", game.CoreGui)
+local frame = Instance.new("Frame", gui)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Position = UDim2.new(0, 50, 0, 200)
+frame.Size = UDim2.new(0, 250, 0, 220)
+frame.Active = true
+frame.Draggable = true
 
-local runRandomizer = false
-local stopAtPet = nil
-
--- Setup UI
-ScreenGui.Parent = game.CoreGui
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Frame.Position = UDim2.new(0.05, 0, 0.2, 0)
-Frame.Size = UDim2.new(0, 250, 0, 220)
-Frame.Active = true
-Frame.Draggable = true
-
-local function makeButton(text, position)
-	local btn = Instance.new("TextButton")
-	btn.Parent = Frame
+local function makeButton(text, y)
+	local btn = Instance.new("TextButton", frame)
 	btn.Size = UDim2.new(0, 230, 0, 40)
-	btn.Position = position
+	btn.Position = UDim2.new(0, 10, 0, y)
 	btn.Text = text
-	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.SourceSansBold
-	btn.TextSize = 20
+	btn.TextSize = 18
 	return btn
 end
 
-PetESP = makeButton("Pet ESP", UDim2.new(0, 10, 0, 10))
-Randomize = makeButton("Randomize Egg: OFF", UDim2.new(0, 10, 0, 60))
-StopT_Rex = makeButton("Stop at T-Rex", UDim2.new(0, 10, 0, 110))
-StopQueenBee = makeButton("Stop at Queen Bee", UDim2.new(0, 10, 0, 160))
-StopMimic = makeButton("Stop at Mimic Octopus", UDim2.new(0, 10, 0, 210))
+local petESPBtn = makeButton("Pet ESP", 10)
+local randomizeBtn = makeButton("Randomize Egg: OFF", 60)
+local stopTrexBtn = makeButton("Stop when T-Rex", 110)
+local stopQueenBtn = makeButton("Stop when Queen Bee", 160)
+local stopMimicBtn = makeButton("Stop when Mimic Octopus", 210)
 
--- Pet ESP
-PetESP.MouseButton1Click:Connect(function()
-	for _, egg in pairs(workspace:GetDescendants()) do
-		if egg:IsA("Model") and egg:FindFirstChild("Egg") and egg:FindFirstChild("PetInside") then
-			local tag = Instance.new("BillboardGui", egg)
-			tag.Size = UDim2.new(0, 100, 0, 40)
-			tag.AlwaysOnTop = true
-			tag.Adornee = egg
-			local label = Instance.new("TextLabel", tag)
+-- Core Logic
+local pets = {"T-Rex", "Queen Bee", "Mimic Octopus", "Cat", "Dog", "Elephant"}
+local activeTags = {}
+local running = false
+local stopAt = nil
+
+-- Function to apply fake ESP
+local function applyFakeESP()
+	for _, part in pairs(workspace:GetDescendants()) do
+		if part:IsA("Part") and part.Name:lower():find("egg") and not activeTags[part] then
+			local gui = Instance.new("BillboardGui", part)
+			gui.Size = UDim2.new(0, 100, 0, 40)
+			gui.Adornee = part
+			gui.AlwaysOnTop = true
+
+			local label = Instance.new("TextLabel", gui)
 			label.Size = UDim2.new(1, 0, 1, 0)
 			label.BackgroundTransparency = 1
-			label.TextColor3 = Color3.new(1, 1, 0)
-			label.Text = egg.PetInside.Value or "Unknown"
+			label.TextColor3 = Color3.fromRGB(255,255,0)
+			label.Text = pets[math.random(1, #pets)]
+			label.Font = Enum.Font.SourceSansBold
+			label.TextScaled = true
+
+			activeTags[part] = {gui = gui, label = label}
 		end
 	end
-end)
+end
 
--- Randomizer loop
+-- Function to randomize
 task.spawn(function()
 	while true do
-		task.wait(1)
-		if runRandomizer then
-			for _, egg in pairs(workspace:GetDescendants()) do
-				if egg:IsA("Model") and egg:FindFirstChild("PetInside") then
-					local pets = {"T-Rex", "Queen Bee", "Mimic Octopus", "Cat", "Dog", "Elephant"}
-					local randomPet = pets[math.random(1, #pets)]
-					egg.PetInside.Value = randomPet
-
-					if stopAtPet and randomPet == stopAtPet then
-						runRandomizer = false
-						Randomize.Text = "Randomize Egg: OFF"
-					end
+		wait(1)
+		if running then
+			for _, tag in pairs(activeTags) do
+				local newPet = pets[math.random(1, #pets)]
+				tag.label.Text = newPet
+				if stopAt and newPet == stopAt then
+					running = false
+					randomizeBtn.Text = "Randomize Egg: OFF"
+					stopAt = nil
 				end
 			end
 		end
 	end
 end)
 
--- Toggle button
-Randomize.MouseButton1Click:Connect(function()
-	runRandomizer = not runRandomizer
-	Randomize.Text = "Randomize Egg: " .. (runRandomizer and "ON" or "OFF")
+-- Button Logic
+petESPBtn.MouseButton1Click:Connect(applyFakeESP)
+
+randomizeBtn.MouseButton1Click:Connect(function()
+	running = not running
+	randomizeBtn.Text = "Randomize Egg: " .. (running and "ON" or "OFF")
 end)
 
--- Stop buttons
-StopT_Rex.MouseButton1Click:Connect(function()
-	stopAtPet = "T-Rex"
+stopTrexBtn.MouseButton1Click:Connect(function()
+	stopAt = "T-Rex"
 end)
 
-StopQueenBee.MouseButton1Click:Connect(function()
-	stopAtPet = "Queen Bee"
+stopQueenBtn.MouseButton1Click:Connect(function()
+	stopAt = "Queen Bee"
 end)
 
-StopMimic.MouseButton1Click:Connect(function()
-	stopAtPet = "Mimic Octopus"
+stopMimicBtn.MouseButton1Click:Connect(function()
+	stopAt = "Mimic Octopus"
 end)
