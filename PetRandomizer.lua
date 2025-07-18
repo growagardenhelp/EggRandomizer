@@ -3,7 +3,7 @@ local gui = Instance.new("ScreenGui", game.CoreGui)
 local frame = Instance.new("Frame", gui)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.Position = UDim2.new(0, 50, 0, 200)
-frame.Size = UDim2.new(0, 250, 0, 220)
+frame.Size = UDim2.new(0, 250, 0, 160)
 frame.Active = true
 frame.Draggable = true
 
@@ -22,11 +22,17 @@ end
 local petESPBtn = makeButton("Pet ESP", 10)
 local randomizeBtn = makeButton("Randomize Egg: OFF", 60)
 local stopTrexBtn = makeButton("Stop when T-Rex", 110)
-local stopQueenBtn = makeButton("Stop when Queen Bee", 160)
-local stopMimicBtn = makeButton("Stop when Mimic Octopus", 210)
 
 -- Core Logic
-local pets = {"T-Rex", "Queen Bee", "Mimic Octopus"}
+local pets = {
+	"T-Rex", "T-Rex", "T-Rex", "T-Rex", -- 40%
+	"Brontosaurus",                    -- 10%
+	"Pterodactyl",                     -- 10%
+	"Triceratops",                     -- 10%
+	"Stegosaurus",                     -- 10%
+	"Raptor"                           -- 10%
+}
+
 local activeTags = {}
 local running = false
 local stopAt = nil
@@ -40,38 +46,36 @@ local function applyFakeESP()
 			gui.Adornee = part
 			gui.AlwaysOnTop = true
 
-			local label = Instance.new("TextLabel", gui)
-			label.Size = UDim2.new(1, 0, 1, 0)
-			label.BackgroundTransparency = 1
-			label.TextColor3 = Color3.fromRGB(255,255,0)
-			label.Text = pets[math.random(1, #pets)]
-			label.Font = Enum.Font.SourceSansBold
-			label.TextScaled = true
+			local label = Instance.new("TextLabel", gui)  
+			label.Size = UDim2.new(1, 0, 1, 0)  
+			label.BackgroundTransparency = 1  
+			label.TextColor3 = Color3.fromRGB(255,255,0)  
+			label.Text = pets[math.random(1, #pets)]  
+			label.Font = Enum.Font.SourceSansBold  
+			label.TextScaled = true  
 
-			activeTags[part] = {gui = gui, label = label}
-		end
+			activeTags[part] = {gui = gui, label = label}  
+		end  
 	end
 end
 
 -- Function to randomize
 task.spawn(function()
 	while true do
-		task.wait(1)
+		wait(1)
 		if running then
 			for _, tag in pairs(activeTags) do
 				local newPet = pets[math.random(1, #pets)]
 				tag.label.Text = newPet
 				if stopAt and newPet == stopAt then
 					running = false
-					randomizeBtn.Text = "Randomize Egg: OFF"
-					stopAt = nil
 				end
 			end
 		end
 	end
 end)
 
--- Button Logic
+-- Button functionality
 petESPBtn.MouseButton1Click:Connect(applyFakeESP)
 
 randomizeBtn.MouseButton1Click:Connect(function()
@@ -81,12 +85,4 @@ end)
 
 stopTrexBtn.MouseButton1Click:Connect(function()
 	stopAt = "T-Rex"
-end)
-
-stopQueenBtn.MouseButton1Click:Connect(function()
-	stopAt = "Queen Bee"
-end)
-
-stopMimicBtn.MouseButton1Click:Connect(function()
-	stopAt = "Mimic Octopus"
 end)
